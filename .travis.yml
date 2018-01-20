@@ -1,13 +1,30 @@
 language: python
 python:
-  - 2.7
+- 2.7
 
 services:
-  - docker
+- docker
 
 install:
-  - docker build -t nginx-proxy .
-  - docker run -d -p 127.0.0.1:80:80 --name proxy1 nginx-proxy
+- docker build -t nginx-proxy .
+- docker run -d -p 127.0.0.1:80:80 --name proxy1 nginx-proxy
 
 script:
-  - docker ps | grep -q nginx-proxy
+- docker ps | grep -q nginx-proxy
+- export TAG=`if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]]; then echo "latest"; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi`
+- export REPO=rjarow/nginx-proxy
+- docker build -t $REPO:$TAG -f Dockerfile .
+
+after_success:
+- docker login -u $DOCKER_USER -p $DOCKER_PASS
+- if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master" ]]; then
+  docker tag $REPO:$TAG $REPO:$TRAVIS_BUILD_NUMBER;
+  docker push $REPO:$TRAVIS_BUILD_NUMBER;
+  fi
+- docker push $REPO:$TAG
+
+env:
+  global:
+    secure: hWFTyIyXTuzJdNE7xQZEYulJ7WA353RU/UGpS6MAzpPRyN3JD0VAoH5lfwExSzPiJ4Ir6LrcXcnPtgAukpKFhnOJoz2HRpdPZc9PBT4b+XcgFNGSM+/5ZDk+xybL2h+5peL0zT8BTp3aUp/FKNz+6od4vPqs9Q8zkKLZmFTW7PL5CJbrqArkc1z2PthVf8bhyh6GK9sBCmx3j29SCRYriImk/CocTHb3Q+gM6vjEGbLaEWiXxO0lS1jMz1YT2vQVnVzEmTxvHOPMOeLYrlF4jF9JQQ1E5Fn3v2GP1GNpqRc7D/ivQuR2svLQWQ72ijZD+0Nf9PGl/0ZwJcIemD518wpOmKONWYs/qlMoH/dq5B7tcw8Wgx4xs7b36ouX+WRe8HxYkCuvKeIex9XOSKjIxXApptaPnCjW6VK9ef9PN4kAYegq0466v0DtQU/w29wY6ZIZuuXelC9ERfpz8g3vDSmv5wJLZ9w6aeJ3+5rAkieMe16KRuKERwCf37I7l5IegvDOPtPih2QQ9ebKS3HzoDp+LYVWiGOWwIJ4w1Vqg+l1Da+CAseM8XfOcdDxs7ERGS7r4yOMmRBymQbU8Txgk9q1W7kLAgBAEvnceTiAF83RGy8GbfcQEtkIsZdsE6ViJ92wEWPHCCGv0bsX90vK31yNA3y4Zx44LwMil+cUvcE=
+dd:
+  secure: dxgwD30n+SaX0YJjh+Xiq164dsknsto371lGGxMAnBiTTk2tmtfpknoyVX7xIjGep7gKtFyaZ2hSNixjED+nKQmWvi/qnO3Mzt4vZijYEgE6OuOJUIAcx060U9hPH6cIMTYDVUDPECheFz0e+cmly+kz6ys6mKJ9ip6DYN8XIVJG+Q0d9LsHBiRGUP26JmA4A6celXJKLHsE7R2FcKcReiv06/awtb/X8BoGEhV2kHPbl6+lAUXy/PE86As+QeBXwXZUo4On7K71ljttZDg9zhw/PlXySsDqwyRnIieSdZlDQQVPDnbjyYYu2pKB91owlXEHVQ3lSwlKgQNwB1OEzEMcJf+ow+Fzp/5tw0PwDyHPwDYjMxt2ieFDSvrIYWnyGvx2Pq49/N2XzGv5XJf2nZw7XhfWI/iz94+ukWz5W1q1iCWsUydcPTAhkLOtkjfMVDQdDFc72/MsIKwnTEAXi6YKUrlWB71ZbTEKNtRwVb3GtQJAbpE8JCKzFGcZWkz37p5fWG18iQkIBTX85WMgUvr0iILA6U81OVyfLed9wgCohkumQ5YCAGVt6koh9U57uKOZI+OVmtc/3IHmDMVoRMGG9ZkpIxsqZvwzkgKWMDQPGOl2dNdRRHKrksGVhoUUxuFD2qj+CH9JkHSFt5QAkQ/pctxC/8mAtin2wvUb2T4=
