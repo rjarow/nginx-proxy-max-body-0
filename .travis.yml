@@ -1,0 +1,13 @@
+language: python
+python:
+  - 2.7
+
+services:
+  - docker
+
+install:
+  - docker build -t nginx-proxy .
+  - docker run -d -p 127.0.0.1:80:80 --name proxy1 nginx-proxy
+
+script:
+  - docker ps | grep -q nginx-proxy
